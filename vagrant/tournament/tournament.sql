@@ -6,15 +6,28 @@
 -- You can write comments in this file by starting them with two dashes, like
 -- these lines here.
 
+DROP DATABASE IF EXISTS tournament;
+CREATE DATABASE tournament;
+\c tournament
+
 
 CREATE TABLE players (id SERIAL PRIMARY KEY,
-                      name TEXT);
+                      name TEXT NOT NULL,
+                      date timestamp default current_timestamp );
 
 CREATE TABLE matches (match_id SERIAL PRIMARY KEY,
-                      winner INTEGER REFERENCES players(id),
-                      loser INTEGER REFERENCES players(id),
-                      draw BOOLEAN);
--- insert into players (id, name) VALUES (DEFAULT, 'Christian');
--- insert into players (id, name) VALUES (DEFAULT, 'John');
+                      winner_id INTEGER,
+                      loser_id INTEGER,
+                      FOREIGN KEY (winner_id) REFERENCES players(id),
+                      FOREIGN KEY (loser_id) REFERENCES players(id) );
 
--- insert into matches (match_id, winner, loser, draw) VALUES (DEFAULT, 1, 2, FALSE);
+
+CREATE VIEW standings as
+SELECT players.id, players.name, count(matches_won.match_id) as wins, count(played_matches.match_id) as played
+FROM players
+  LEFT JOIN matches as matches_won
+    on players.id = matches_won.winner_id
+  LEFT JOIN matches as played_matches
+    on players.id = played_matches.winner_id or players.id = played_matches.loser_id
+GROUP BY players.id, players.name
+ORDER BY wins DESC;
