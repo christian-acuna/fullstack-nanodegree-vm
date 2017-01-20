@@ -1,4 +1,4 @@
-### Swiss-system Game  Tournament Planner
+### Swiss-system Tournament Results
 ---
 
 This project is a Python module that uses PostgreSQL database to manage a Swiss system game tournament where
