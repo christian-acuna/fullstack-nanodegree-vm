@@ -73,10 +73,8 @@ def playerStandings():
     """
     connection = connect()
     cursor = connection.cursor()
-    cursor.execute("select players.id, players.name, count(matches.winner) as wins FROM players left join matches on players.id = matches.winner group by players.name, players.id;")
-    standings = [(row[0], row[1], row[2], 0) for row in cursor.fetchall()]
-    # results = cursor.fetchall()
-    print standings
+    cursor.execute("SELECT * FROM standings")
+    standings = [(row[0], row[1], row[2], row[3]) for row in cursor.fetchall()]
     connection.commit()
     connection.close()
 
@@ -92,6 +90,13 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute(
+        "INSERT INTO matches (match_id, winner_id, loser_id) VALUES \
+        (DEFAULT, %s, %s);", (winner, loser, ))
+    connection.commit()
+    connection.close()
 
 
 def swissPairings():
@@ -109,3 +114,14 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+
+    standings = playerStandings()
+    swissPairings = []
+
+    for i in xrange(0, len(standings) - 1, 2):
+        first_player = standings[i]
+        second_player = standings[i + 1]
+        next_pairing = (first_player[0], first_player[
+                        1], second_player[0], second_player[1])
+        swissPairings.append(next_pairing)
+    return swissPairings
